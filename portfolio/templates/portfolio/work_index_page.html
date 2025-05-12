@@ -5,7 +5,7 @@
 <h1 class="text-3xl font-bold mb-6">{{ page.title }}</h1>
 
 <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
-  {% for child in page.get_children.live.order_by('-first_published_at').specific %}
+  {% for child in works %}
     <a href="{{ child.url }}" class="group">
       {% if child.main_image %}
         {% image child.main_image fill-400x250 class="rounded-lg group-hover:opacity-80" alt=child.title %}
@@ -17,4 +17,3 @@
   {% endfor %}
 </div>
 {% endblock %}
-
