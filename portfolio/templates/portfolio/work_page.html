@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+<div class="prose mx-auto max-w-2xl p-6">
+  <h1 class="text-4xl font-bold mb-2">{{ page.title }}</h1>
+  <p class="text-gray-500 mb-6">{{ page.date }}</p>
+
+  {% if page.main_image %}
+    <figure class="mb-4">
+        {% image page.main_image fill-800x450 alt=page.title %}
+    </figure>
+  {% endif %}
+
+  {{ page.body|richtext }}
+</div>
+{% endblock %}
