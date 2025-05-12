@@ -1,9 +1,10 @@
+# portfolio/models.py
 from django.db import models
 from wagtail.models import Page
 from wagtail.fields import RichTextField
 from wagtail.admin.panels import FieldPanel
 
-# 列表页：用来归档所有作品
+
 class WorkIndexPage(Page):
     intro = RichTextField(blank=True)
 
@@ -11,10 +12,20 @@ class WorkIndexPage(Page):
         FieldPanel("intro"),
     ]
 
-    # 只允许在导航树里当一级/二级菜单
     subpage_types = ["portfolio.WorkPage"]
 
-# 详情页：单个作品
+    # 🔸 关键：把原本写在模板里的查询搬到这里
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["works"] = (
+            self.get_children()
+                .live()
+                .order_by("-first_published_at")
+                .specific()
+        )
+        return context
+
+
 class WorkPage(Page):
     date = models.DateField("Published date")
     main_image = models.ForeignKey(
