@@ -3,6 +3,8 @@ from django.db import models
 from wagtail.models import Page
 from wagtail.fields import RichTextField
 from wagtail.admin.panels import FieldPanel
+from wagtail.api import APIField
+from wagtail.images.api.fields import ImageRenditionField
 
 
 class WorkIndexPage(Page):
@@ -25,6 +27,28 @@ class WorkIndexPage(Page):
         )
         return context
 
+class AboutPage(Page):
+    main_image = models.ForeignKey(
+        "wagtailimages.Image",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    body = RichTextField()
+
+    content_panels = Page.content_panels + [
+        FieldPanel("main_image"),
+        FieldPanel("body"),
+    ]
+
+    api_fields = [
+        APIField("body"),
+        APIField("main_image", serializer=ImageRenditionField('fill-800x400')),
+    ]
+
+    parent_page_types = ["home.HomePage"]
+
 
 class WorkPage(Page):
     date = models.DateField("Published date")
@@ -43,4 +67,14 @@ class WorkPage(Page):
         FieldPanel("body"),
     ]
 
+    api_fields = [
+        APIField("date"),
+        APIField("body"),
+        APIField("main_image", serializer=ImageRenditionField('fill-400x250')),
+    ]
+
     parent_page_types = ["portfolio.WorkIndexPage"]
+
+    
+
+    
