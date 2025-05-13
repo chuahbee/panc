@@ -27,6 +27,7 @@ class WorkIndexPage(Page):
         )
         return context
 
+
 class AboutPage(Page):
     main_image = models.ForeignKey(
         "wagtailimages.Image",
@@ -75,6 +76,173 @@ class WorkPage(Page):
 
     parent_page_types = ["portfolio.WorkIndexPage"]
 
-    
 
+class CryptoIndexPage(Page):
+    parent_page_types = ["home.HomePage"]  # 只允许挂在 HomePage 下
+    subpage_types = ["portfolio.BitfinexIndexPage", "portfolio.AwesomeIndexPage"]  # 子目录
+
+    # 可选：页面内容可以是空的，也可以重定向或展示子页面列表
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["crypto_sections"] = self.get_children().live().specific()
+        return context
+
+
+class AwesomeIndexPage(Page):
+    intro = RichTextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+    ]
+
+    subpage_types = ["portfolio.AwesomePayInPage","portfolio.AwesomePayOutPage"]
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["pages"] = (
+            self.get_children()
+                .live()
+                .order_by("-first_published_at")
+                .specific()
+        )
+        return context
     
+    
+class AwesomePayInPage(Page):
+    body = RichTextField()
+
+    content_panels = Page.content_panels + [
+        FieldPanel("body"),
+    ]
+
+    parent_page_types = ["portfolio.AwesomeIndexPage"]
+
+
+class AwesomePayOutPage(Page):
+    body = RichTextField()
+
+    content_panels = Page.content_panels + [
+        FieldPanel("body"),
+    ]
+
+    parent_page_types = ["portfolio.AwesomeIndexPage"]
+
+
+class BitfinexIndexPage(Page):
+    intro = RichTextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+    ]
+
+    subpage_types = ["portfolio.BitfinexPayInPage","portfolio.BitfinexPayOutPage"]
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["pages"] = (
+            self.get_children()
+                .live()
+                .order_by("-first_published_at")
+                .specific()
+        )
+        return context
+    
+    
+class BitfinexPayInPage(Page):
+    body = RichTextField()
+
+    content_panels = Page.content_panels + [
+        FieldPanel("body"),
+    ]
+
+    parent_page_types = ["portfolio.BitfinexIndexPage"]
+
+
+class BitfinexPayOutPage(Page):
+    body = RichTextField()
+
+    content_panels = Page.content_panels + [
+        FieldPanel("body"),
+    ]
+
+    parent_page_types = ["portfolio.BitfinexIndexPage"]
+
+
+class CreditCardsIndexPage(Page):
+    intro = RichTextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+    ]
+
+    subpage_types = ["portfolio.PaymentHostedPage","portfolio.PaymentDirect"]
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["pages"] = (
+            self.get_children()
+                .live()
+                .order_by("-first_published_at")
+                .specific()
+        )
+        return context
+    
+    
+class PaymentHostedPage(Page):
+    body = RichTextField()
+
+    content_panels = Page.content_panels + [
+        FieldPanel("body"),
+    ]
+
+    parent_page_types = ["portfolio.CreditCardsIndexPage"]
+
+
+class PaymentDirect(Page):
+    body = RichTextField()
+
+    content_panels = Page.content_panels + [
+        FieldPanel("body"),
+    ]
+
+    parent_page_types = ["portfolio.CreditCardsIndexPage"]
+
+
+class P2PIndexPage(Page):
+    intro = RichTextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+    ]
+
+    subpage_types = ["portfolio.PayInPage", "portfolio.PayOutPage"]
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["pages"] = (
+            self.get_children()
+                .live()
+                .order_by("-first_published_at")
+                .specific()
+        )
+        return context
+    
+    
+class PayInPage(Page):
+    body = RichTextField()
+
+    content_panels = Page.content_panels + [
+        FieldPanel("body"),
+    ]
+
+    parent_page_types = ["portfolio.P2PIndexPage"]
+
+
+class PayOutPage(Page):
+    body = RichTextField()
+
+    content_panels = Page.content_panels + [
+        FieldPanel("body"),
+    ]
+
+    parent_page_types = ["portfolio.P2PIndexPage"]

@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load wagtailcore_tags %}
+
 {% load static %}
 
 {% block body_class %}template-homepage{% endblock %}
@@ -11,11 +13,26 @@ Delete the line below if you're just getting started and want to remove the welc
 <link rel="stylesheet" href="{% static 'css/welcome_page.css' %}">
 {% endblock extra_css %}
 
+
 {% block content %}
+
+<h1>{{ page.title }}</h1>
+
+  <nav>
+    <ul>
+      <li><a href="{% slugurl 'p2p' %}">P2P</a></li>
+      <li><a href="{% slugurl 'credit-cards' %}">Credit Cards</a></li>
+      <li>
+        <h2>Crypto</h2>
+        <a href="{% slugurl 'bitfinex' %}">Bitfinex</a>
+        <a href="{% slugurl 'awesome' %}">Awesomepay</a>
+    </li>
+    </ul>
+  </nav>
 
 {% comment %}
 Delete the line below if you're just getting started and want to remove the welcome screen!
 {% endcomment %}
-{% include 'home/welcome_page.html' %}
+<!-- {% include 'home/welcome_page.html' %} -->
 
 {% endblock content %}
