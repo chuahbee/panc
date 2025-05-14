@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Work Page Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Work Page Card</h1>
+    <div id="card"></div>
+
+    <script>
+        axios.get('http://127.0.0.1:8000/api/v2/pages/7/')
+            .then(response => {
+                const data = response.data;
+
+                const card = `
+                    <div style="border: 1px solid #ccc; padding: 10px; max-width: 400px;">
+                        <h2>${data.title}</h2>
+                        <img src="http://127.0.0.1:8000${data.main_image.url}" width="${data.main_image.width}" height="${data.main_image.height}" alt="${data.main_image.alt}">
+                        <p><strong>Date:</strong> ${data.date}</p>
+                        <div>${data.body}</div>
+                    </div>
+                `;
+
+                document.getElementById('card').innerHTML = card;
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    </script>
+</body>
+</html>

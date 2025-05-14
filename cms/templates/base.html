@@ -1,46 +1,171 @@
-{% load static wagtailcore_tags wagtailuserbar %}
-
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <title>
-            {% block title %}
-            {% if page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }}{% endif %}
-            {% endblock %}
-            {% block title_suffix %}
-            {% wagtail_site as current_site %}
-            {% if current_site and current_site.site_name %}- {{ current_site.site_name }}{% endif %}
-            {% endblock %}
-        </title>
-        {% if page.search_description %}
-        <meta name="description" content="{{ page.search_description }}" />
-        {% endif %}
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+<html lang="zh">
 
-        {# Force all links in the live preview panel to be opened in a new tab #}
-        {% if request.in_preview_panel %}
-        <base target="_blank">
-        {% endif %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Panel</title>
+    <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
 
-        {# Global stylesheets #}
-        <link rel="stylesheet" type="text/css" href="{% static 'css/cms.css' %}">
+    <!-- GSAP -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.4/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.4/dist/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.4/dist/ScrollToPlugin.min.js"></script>
 
-        {% block extra_css %}
-        {# Override this in templates to add extra stylesheets #}
-        {% endblock %}
-    </head>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <body class="{% block body_class %}{% endblock %}">
-        {% wagtailuserbar %}
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="{% static 'css/break.css' %}">
+</head>
 
-        {% block content %}{% endblock %}
+<body>
+    <div id="mascot-container">
+        <!-- <div id="loading-spinner">
+            <div class="spinner"></div>
+        </div> -->
+    </div>
 
-        {# Global javascript #}
-        <script type="text/javascript" src="{% static 'js/cms.js' %}"></script>
+    {% block content %}{% endblock %}
 
-        {% block extra_js %}
-        {# Override this in templates to add extra javascript #}
-        {% endblock %}
-    </body>
+    <script src="{% static 'js/menu.js' %}"></script>
+    <script src="{% static 'js/break.js' %}"></script>
+
+    <!-- THREE.js & loaders -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/RGBELoader.js"></script>
+
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / 500, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 0.5;
+        renderer.setSize(window.innerWidth, 450);
+        renderer.setClearColor(0x000000, 0);
+        document.getElementById('mascot-container').appendChild(renderer.domElement);
+
+        // 先用 LDR 快速填 environment
+        // const ldrTexture = new THREE.TextureLoader().load("{% static 'images/space.jpg' %}");
+        // ldrTexture.mapping = THREE.EquirectangularReflectionMapping;
+        // scene.environment = ldrTexture;
+
+        const rgbeLoader = new THREE.RGBELoader();
+        rgbeLoader.load("{% static 'images/venice_sunset_1k.hdr' %}", function (texture) {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            scene.environment = texture;
+        });
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 2.0);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5);
+        directionalLight.position.set(5, 5, 5).normalize();
+        scene.add(ambientLight, directionalLight);
+
+        const rgbLight = new THREE.PointLight(0xff0000, 2, 100);
+        rgbLight.position.set(0, 2, 2);
+        scene.add(rgbLight);
+
+        let rgbHue = 0;
+        function updateRGBLight() {
+            rgbHue += 0.5;
+            if (rgbHue > 360) rgbHue = 0;
+            rgbLight.color = new THREE.Color(`hsl(${rgbHue}, 100%, 50%)`);
+        }
+
+        let model, mixer;
+        const clock = new THREE.Clock();
+        window.modelGroup = new THREE.Group();
+        scene.add(window.modelGroup);
+
+        const loader = new THREE.GLTFLoader();
+        loader.load("{% static 'images/mascot.glb' %}", function (gltf) {
+            console.log("GLTF 动画列表：", gltf.animations.map(a => a.name));
+
+            // ✅ 模型加载完成后隐藏 spinner
+            // document.getElementById('loading-spinner').style.display = 'none';
+
+            model = gltf.scene;
+            window.model = model;
+            mixer = new THREE.AnimationMixer(model);
+            window.mixer = mixer;
+
+            model.traverse((node) => {
+                if (node.isMesh && node.material) {
+                    const oldMat = node.material;
+                    node.material = new THREE.MeshPhysicalMaterial({
+                        color: oldMat.color?.clone() || new THREE.Color(0xffff99),
+                        map: oldMat.map || null,
+                        normalMap: oldMat.normalMap || null,
+                        roughnessMap: oldMat.roughnessMap || null,
+                        metalnessMap: oldMat.metalnessMap || null,
+                        emissive: oldMat.emissive?.clone() || new THREE.Color(0x000000),
+                        emissiveMap: oldMat.emissiveMap || null,
+                        metalness: 0.95,
+                        roughness: 0.05,
+                        transparent: true,
+                        transmission: 0.25,
+                        ior: 1.2,
+                        thickness: 0.3,
+                        envMapIntensity: 1.0,
+                        clearcoat: 1.0,
+                    });
+                }
+            });
+
+            model.position.set(0, -.5, 0);
+            model.scale.set(1, 1, 1);
+            window.modelGroup.add(model);
+
+            const ideAction = mixer.clipAction(gltf.animations.find(a => a.name === 'ide'));
+            if (ideAction) ideAction.play();
+            //     }, undefined, function (error) {
+            // console.error('GLTF 加载失败:', error);
+            // document.getElementById('loading-spinner').style.display = 'none';
+        });
+
+        camera.position.z = 5;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (mixer) mixer.update(clock.getDelta());
+            updateRGBLight();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.triggerMascotSpin = function () {
+            if (!window.modelGroup) return;
+            gsap.to(window.modelGroup.rotation, {
+                y: window.modelGroup.rotation.y + Math.PI * 2,
+                duration: 1,
+                ease: "power2.inOut",
+            });
+        };
+
+        window.triggerMascotWave = function () {
+            if (!window.mixer || !window.model) return;
+
+            mixer.stopAllAction();
+
+            const waveClip = mixer._actions.find(a => a._clip.name === 'Cube.003Action')?.getClip?.();
+            const waveAction = mixer.clipAction(waveClip);
+
+            if (waveAction) {
+                waveAction.reset().play();
+                waveAction.clampWhenFinished = true;
+                waveAction.loop = THREE.LoopOnce;
+                waveAction.onFinished = () => {
+                    const ide = mixer._actions.find(a => a._clip.name === 'ide')?.getClip?.();
+                    const ideAction = mixer.clipAction(ide);
+                    if (ideAction) ideAction.reset().play();
+                };
+            }
+        };
+    </script>
+</body>
 </html>

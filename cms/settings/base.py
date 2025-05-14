@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     "grapple", 
     "graphene_django",
     "portfolio",
+    'rest_framework',
+    'wagtail.api.v2',
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,27 @@
+<nav class="navbar">
+  <div class="nav-left">
+    <h4>Welcome{% if username %}, {{ username }}{% endif %}</h4>
+  </div>
+  <div class="nav-right">
+    <a href="/">Home</a>
+    <a href="/service">Service</a>
+    <a href="/product">Product</a>
+    <a href="/about">About Us</a>
+    <a href="/contact">Contact</a>
+    <a href="/lang-en">EN</a>
+    <a href="/admin/login">Login</a>
+  </div>
+
+  <div class="mobile-menu">
+    <button id="menu-toggle" class="menu-toggle">☰</button>
+    <div id="mobile-nav" class="mobile-nav hidden">
+      <a href="/">Home</a>
+      <a href="/service">Service</a>
+      <a href="/product">Product</a>
+      <a href="/about">About Us</a>
+      <a href="/contact">Contact</a>
+      <a href="/lang-en">EN</a>
+      <a href="/admin/login">Login</a>
+    </div>
+  </div>
+</nav>
