@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "portfolio",
     'rest_framework',
     'wagtail.api.v2',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
