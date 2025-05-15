@@ -79,7 +79,7 @@ class WorkPage(Page):
 
 class CryptoIndexPage(Page):
     parent_page_types = ["home.HomePage"]  # 只允许挂在 HomePage 下
-    subpage_types = ["portfolio.BitfinexIndexPage", "portfolio.AwesomeIndexPage"]  # 子目录
+    subpage_types = ["portfolio.BitfinexIndexPage", "portfolio.AwesomeIndexPage"]
 
     # 可选：页面内容可以是空的，也可以重定向或展示子页面列表
     def get_context(self, request, *args, **kwargs):
@@ -88,14 +88,64 @@ class CryptoIndexPage(Page):
         return context
 
 
+class BaseSectionPage(Page):
+    body = RichTextField()
+    code_block = models.TextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel("body"),
+        FieldPanel("code_block"),
+    ]
+
+    class Meta:
+        abstract = True  # 不会生成页面类型，只能继承
+
+
+class BaseSubsectionPage(Page):
+    body = RichTextField()
+    code_block = models.TextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel("body"),
+        FieldPanel("code_block"),
+    ]
+
+    class Meta:
+        abstract = True
+
+
+class TabPage(Page):
+    body = RichTextField()
+    code_block = models.TextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel("body"),
+        FieldPanel("code_block"),
+    ]
+
+    parent_page_types = ["portfolio.AwesomeIndexPage", "portfolio.BitfinexIndexPage", "CreditCardsIndexPage", "P2PIndexPage"]
+    subpage_types = ["portfolio.SectionPage"]
+
+
+class SectionPage(BaseSectionPage):
+    parent_page_types = ["portfolio.TabPage"]
+    subpage_types = ["portfolio.SubsectionPage"]
+
+
+class SubsectionPage(BaseSubsectionPage):
+    parent_page_types = ["portfolio.SectionPage"]
+
+
 class AwesomeIndexPage(Page):
     intro = RichTextField(blank=True)
+    code_block = models.TextField(blank=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("intro"),
+        FieldPanel("code_block"),
     ]
 
-    subpage_types = ["portfolio.AwesomePayInPage","portfolio.AwesomePayOutPage"]
+    subpage_types = ["portfolio.TabPage"]
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
@@ -107,35 +157,17 @@ class AwesomeIndexPage(Page):
         )
         return context
     
-    
-class AwesomePayInPage(Page):
-    body = RichTextField()
-
-    content_panels = Page.content_panels + [
-        FieldPanel("body"),
-    ]
-
-    parent_page_types = ["portfolio.AwesomeIndexPage"]
-
-
-class AwesomePayOutPage(Page):
-    body = RichTextField()
-
-    content_panels = Page.content_panels + [
-        FieldPanel("body"),
-    ]
-
-    parent_page_types = ["portfolio.AwesomeIndexPage"]
-
 
 class BitfinexIndexPage(Page):
     intro = RichTextField(blank=True)
+    code_block = models.TextField(blank=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("intro"),
+        FieldPanel("code_block"),
     ]
 
-    subpage_types = ["portfolio.BitfinexPayInPage","portfolio.BitfinexPayOutPage"]
+    subpage_types = ["portfolio.TabPage"]
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
@@ -147,35 +179,17 @@ class BitfinexIndexPage(Page):
         )
         return context
     
-    
-class BitfinexPayInPage(Page):
-    body = RichTextField()
-
-    content_panels = Page.content_panels + [
-        FieldPanel("body"),
-    ]
-
-    parent_page_types = ["portfolio.BitfinexIndexPage"]
-
-
-class BitfinexPayOutPage(Page):
-    body = RichTextField()
-
-    content_panels = Page.content_panels + [
-        FieldPanel("body"),
-    ]
-
-    parent_page_types = ["portfolio.BitfinexIndexPage"]
-
 
 class CreditCardsIndexPage(Page):
     intro = RichTextField(blank=True)
+    code_block = models.TextField(blank=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("intro"),
+        FieldPanel("code_block"),
     ]
 
-    subpage_types = ["portfolio.PaymentHostedPage","portfolio.PaymentDirect"]
+    subpage_types = ["portfolio.TabPage"]
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
@@ -187,35 +201,17 @@ class CreditCardsIndexPage(Page):
         )
         return context
     
-    
-class PaymentHostedPage(Page):
-    body = RichTextField()
-
-    content_panels = Page.content_panels + [
-        FieldPanel("body"),
-    ]
-
-    parent_page_types = ["portfolio.CreditCardsIndexPage"]
-
-
-class PaymentDirect(Page):
-    body = RichTextField()
-
-    content_panels = Page.content_panels + [
-        FieldPanel("body"),
-    ]
-
-    parent_page_types = ["portfolio.CreditCardsIndexPage"]
-
 
 class P2PIndexPage(Page):
     intro = RichTextField(blank=True)
+    code_block = models.TextField(blank=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("intro"),
+        FieldPanel("code_block"),
     ]
 
-    subpage_types = ["portfolio.PayInPage", "portfolio.PayOutPage"]
+    subpage_types = ["portfolio.TabPage"]
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
@@ -227,25 +223,6 @@ class P2PIndexPage(Page):
         )
         return context
     
-    
-class PayInPage(Page):
-    body = RichTextField()
-
-    content_panels = Page.content_panels + [
-        FieldPanel("body"),
-    ]
-
-    parent_page_types = ["portfolio.P2PIndexPage"]
-
-
-class PayOutPage(Page):
-    body = RichTextField()
-
-    content_panels = Page.content_panels + [
-        FieldPanel("body"),
-    ]
-
-    parent_page_types = ["portfolio.P2PIndexPage"]
 
 class Task(models.Model):
     title = models.CharField(max_length=255)

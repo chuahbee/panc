@@ -1,13 +1,31 @@
-{% extends "base.html" %}
+{% extends "base_info.html" %}
 {% load wagtailcore_tags %}
+{% load static %}
 
 {% block content %}
-  <h1>{{ page.title }}</h1>
-  <p>{{ page.intro|richtext }}</p>
 
-  <ul>
-    {% for subpage in page.pages %}
-      <li><a href="{% pageurl subpage %}">{{ subpage.title }}</a></li>
-    {% endfor %}
-  </ul>
+<div class="container my">
+  <nav class="myNavbar">
+    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+      {% for subpage in page.get_children.live %}
+      <button class="nav-link {% if forloop.first %}active{% endif %}" id="tab-{{ subpage.slug }}-tab"
+        data-bs-toggle="tab" data-bs-target="#tab-{{ subpage.slug }}" type="button" role="tab"
+        aria-controls="tab-{{ subpage.slug }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+        {{ subpage.title }}
+      </button>
+      {% endfor %}
+    </div>
+  </nav>
+</div>
+
+<div class="tab-content my" id="nav-tabContent">
+  {% for subpage in page.get_children.live %}
+  <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="tab-{{ subpage.slug }}" role="tabpanel">
+    <!-- tab body -->
+    {% include "portfolio/_subpage_detail.html" with subpage=subpage %}
+  </div>
+  {% endfor %}
+
+</div>
+
 {% endblock %}

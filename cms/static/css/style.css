@@ -25,27 +25,95 @@ body {
   font-weight: var(--font500);
   font-size: var(--fontSize1);
   background-color: var(--bodybg) !important;
+  color:#282828;
+  font-size: 1rem;
 }
 
 img {
   width: auto;
 }
+pre {
+  background: #2d2d2d !important;
+  color: #f8f8f2 !important;
+  padding: 1rem !important;
+  border-radius: 6px !important;
+  overflow-x: auto !important;
+  margin-bottom: 1rem !important;
+}
 
+pre code {
+  font-family: Consolas, "Courier New", monospace !important;
+  font-size: 0.9rem !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+}
+p{
+  margin: 0;
+  padding: 0;
+}
 .myheader {
   width: 100%;
   display: flex;
   justify-content: space-between;
-  height: 80px;
+  height: auto;
   font-size: 2rem;
   font-weight: var(--font500);
   align-items: center;
+  flex-direction: column;
+  padding: 1rem 0;
 }
-
+.myheader .top-box{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.myheader .bot-box{
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: row;
+    gap: 5px;
+}
+.myheader .bot-box{
+  font-size: 1rem;
+}
+.subpage-menu ul{
+  display: flex;
+  list-style: none;
+  font-size: 1.2rem;
+  gap: 20px;
+}
+.subpage-menu ul li a{
+  background: #118b1e;
+  min-width: 100px;
+  display: flex;
+  justify-content: center;
+  padding: 5px 15px;
+  border-radius: 15px;
+  color: #fff;
+  font-weight: 400;
+  font-size: 1.1rem;
+}
+.subpage-menu ul li a:hover{
+  background: #0b6514;
+}
+.myheader .bot-box span{
+  color: #868686;
+}
 .myheader h4 {
   font-size: 2rem;
   font-weight: 700;
 }
-
+.navbar.navbar-expand-lg.my{
+  width: 100%;
+}
+.navbar-expand-lg.my .navbar-collapse{
+  display: flex !important;
+  flex-basis: auto;
+  justify-content: flex-end;
+}
 .myheader a {
   display: flex;
   font-weight: var(--font500);
@@ -111,6 +179,7 @@ img {
   gap: 20px;
   flex-direction: column;
   padding: 15px 0;
+  align-items: flex-end;
 }
 
 .tab-content.my ul li {

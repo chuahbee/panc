@@ -1,0 +1,42 @@
+{% load wagtailcore_tags %}
+
+<div class="row">
+  <div class="col-md-2">
+    <nav id="sidebar-menu">
+      <ul class="nav flex-column">
+        {% for section in subpage.get_children.live %}
+        <li>
+          <a class="nav-link" href="#section-{{ section.slug }}">{{ section.title }}</a>
+          {% if section.get_children.live %}
+          <ul>
+            {% for subsection in section.get_children.live %}
+            <li><a class="nav-link" href="#section-{{ subsection.slug }}">{{ subsection.title }}</a></li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </div>
+
+  <main class="col-md-10 ms-sm-auto col-lg-10 px-md-4 ">
+    {% for section in subpage.get_children.live %}
+    <section id="section-{{ section.slug }}">
+      <h3>{{ section.title }}</h3>
+      <div>{{ section.specific.body|richtext }}</div>
+
+      {% if section.specific.code_block %}
+      <pre><code>{{ section.specific.code_block|safe }}</code></pre>
+      {% endif %}
+
+      {% for subsection in section.get_children.live %}
+      <div id="section-{{ subsection.slug }}">
+        <h4>{{ subsection.title }}</h4>
+        <div>{{ subsection.specific.body|richtext }}</div>
+      </div>
+      {% endfor %}
+    </section>
+    {% endfor %}
+  </main>
+</div>
