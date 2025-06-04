@@ -16,6 +16,7 @@
   --brownhover: #2c3525;
   --bodybg: #efefef;
   --maincls: #00996b;
+  --lightredbg: #ff7a61;
 }
 
 html,
@@ -43,7 +44,7 @@ img {
   display: flex;
   place-items: center;
   font: 800 6rem / 1.1 "Poppins", sans-serif;
-  color: var(--brown);
+  color: var(--white);
   justify-content: center;
   align-content: space-evenly;
   flex-direction: column;
@@ -53,22 +54,22 @@ img {
 }
 
 .intro {
-  background:var(--coral) url("../images/333.png")no-repeat center center/contain;
+  background:var(--lightredbg) url("../images/333.jpg")no-repeat center center/cover;
   /* background:var(--coral); */
 }
 
 .p2p {
-  background:var(--cream) url("../images/333.png")no-repeat center center/contain;
+  background:var(--lightredbg) url("../images/333.jpg")no-repeat center center/cover;
   /* background: var(--cream); */
 }
 
 .creditcard {
-  background:var(--mint) url("../images/333.png")no-repeat center center/contain;
+  background:var(--lightredbg) url("../images/333.jpg")no-repeat center center/cover;
   /* background: var(--mint); */
 }
 
 .crypto {
-  background:var(--lightorange) url("../images/333.png")no-repeat center center/contain;
+  background:var(--lightredbg) url("../images/333.jpg")no-repeat center center/cover;
   /* background: var(--lightorange); */
 }
 
@@ -127,7 +128,7 @@ img {
 
 #timeline li.active {
   transform: scale(1.2) rotate(-15deg);
-  color: var(--maincls);
+  color: var(--white);
 }
 
 h1 {
@@ -166,7 +167,7 @@ h1 {
 .centerBoxLink {
   font-size: 3rem;
   text-decoration: none;
-  color: var(--brown);
+  color: var(--white);
   display: flex;
   align-items: center;
   gap: 15px;
@@ -180,7 +181,7 @@ h1 {
 }
 
 .centerBoxLink:hover {
-  color: var(--brownhover);
+  color: var(--lightorange);
 }
 
 .centerBoxLink span {

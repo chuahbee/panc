@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'wagtail.api.v2',
     'django_extensions',
+    'courses.apps.CoursesConfig',
 ]
 
 MIDDLEWARE = [

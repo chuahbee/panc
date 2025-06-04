@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+<div class="container">
+  <h1>{{ page.title }}</h1>
+  {% if page.intro %}
+  <div class="intro">
+    {{ page.intro|richtext }}
+  </div>
+  {% endif %}
+
+  <div class="course-list">
+    {% for course in page.get_children.specific.live %}
+    <div class="course-card" style="border:1px dashed #ccc; padding:1em; margin-bottom:1em;">
+      <h2><a href="{{ course.url }}">{{ course.title }}</a></h2>
+      <p><strong>教师:</strong> {{ course.teacher }}</p>
+      <p><strong>地点:</strong> {{ course.location }}</p>
+      <p><strong>开课日期:</strong> {{ course.date }}</p>
+      <p><strong>时间:</strong> {{ course.start_time }} - {{ course.end_time }}</p>
+      <p><strong>类型:</strong> {{ course.get_course_type_display }}</p>
+      <p>{{ course.description|richtext }}</p>
+      {% if course.image %}
+      {% image course.image fill-400x250 class="course-image" %}
+      {% endif %}
+
+      <!-- 这里是我要报名按钮 -->
+      <a href="{{ course.url }}" style="
+        display:inline-block;
+        background:#28a745;
+        color:#fff;
+        padding:8px 12px;
+        border-radius:4px;
+        text-decoration:none;
+        margin-top:10px;
+    ">
+        我要报名
+      </a>
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+{% endblock %}
