@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import importlib.util
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.dirname(PROJECT_DIR)
@@ -46,14 +47,21 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "grapple", 
-    "graphene_django",
     "portfolio",
-    'rest_framework',
-    'wagtail.api.v2',
-    'django_extensions',
-    'courses.apps.CoursesConfig',
+    "rest_framework",
+    "wagtail.api.v2",
+    "courses.apps.CoursesConfig",
 ]
+
+def _append_optional_app(app_label: str, module_name: str | None = None) -> None:
+    target_module = module_name or app_label
+    if importlib.util.find_spec(target_module):
+        INSTALLED_APPS.append(app_label)
+
+
+_append_optional_app("grapple")
+_append_optional_app("graphene_django")
+_append_optional_app("django_extensions")
 
 MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",

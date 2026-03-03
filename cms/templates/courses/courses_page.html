@@ -11,7 +11,7 @@
   {% endif %}
 
   <div class="course-list">
-    {% for course in page.get_children.specific.live %}
+    {% for course in courses %}
     <div class="course-card" style="border:1px dashed #ccc; padding:1em; margin-bottom:1em;">
       <h2><a href="{{ course.url }}">{{ course.title }}</a></h2>
       <p><strong>教师:</strong> {{ course.teacher }}</p>

@@ -1,2 +1,7 @@
 Django>=5.2,<5.3
 wagtail>=7.0,<7.1
+django-filter>=24.0
+djangorestframework>=3.15
+graphene-django>=3.2
+django-extensions>=3.2
+wagtail-grapple>=0.28
