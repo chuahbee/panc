@@ -4,6 +4,7 @@
 {% block content %}
 <div class="container">
   <h1>{{ page.title }}</h1>
+
   {% if page.intro %}
   <div class="intro">
     {{ page.intro|richtext }}
@@ -11,8 +12,10 @@
   {% endif %}
 
   <div class="course-list">
+
     {% for course in courses %}
     <div class="course-card" style="border:1px dashed #ccc; padding:1em; margin-bottom:1em;">
+      
       <h2><a href="{{ course.url }}">{{ course.title }}</a></h2>
       <p><strong>教师:</strong> {{ course.teacher }}</p>
       <p><strong>地点:</strong> {{ course.location }}</p>
@@ -20,12 +23,11 @@
       <p><strong>时间:</strong> {{ course.start_time }} - {{ course.end_time }}</p>
       <p><strong>类型:</strong> {{ course.get_course_type_display }}</p>
       <p>{{ course.description|richtext }}</p>
-      {% if course.image %}
-      {% image course.image fill-400x250 class="course-image" %}
-      {% endif %}
-      <p>{{ course.image }}</p>
 
-      <!-- 这里是我要报名按钮 -->
+      {% if course.image %}
+        {% image course.image fill-400x250 class="course-image" %}
+      {% endif %}
+
       <a href="{{ course.url }}" style="
         display:inline-block;
         background:#28a745;
@@ -34,10 +36,14 @@
         border-radius:4px;
         text-decoration:none;
         margin-top:10px;
-    ">
+      ">
         我要报名
       </a>
+
     </div>
+
+    {% empty %}
+      <p>暂时没有课程。</p>
     {% endfor %}
 
   </div>
