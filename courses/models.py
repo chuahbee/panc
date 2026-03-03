@@ -51,5 +51,5 @@ class CoursesPage(Page):
 
     def get_context(self, request):
         context = super().get_context(request)
-        context['courses'] = self.get_children().live().specific()
+        context['courses'] = self.get_children().live().order_by("-first_published_at").specific()
         return context
