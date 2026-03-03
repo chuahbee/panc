@@ -20,9 +20,9 @@ urlpatterns = [
     path("admin/", include(wagtailadmin_urls)),
     path("documents/", include(wagtaildocs_urls)),
     path("search/", search_views.search, name="search"),
-    path("api/v2/", api_router.urls),  # ✅ 这是对的
-    path("test/", portfolio_views.test_page, name="test_page"),  # ✅ 这个放前面
-    path("", include(wagtail_urls)),  # ✅ 最后是 Wagtail 页面
+    path("api/v2/", api_router.urls),
+    path("test/", portfolio_views.test_page, name="test_page"),
+    path("", include(wagtail_urls)),  # 最后
 ]
 
 if settings.DEBUG:
