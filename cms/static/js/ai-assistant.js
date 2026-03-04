@@ -5,7 +5,7 @@
   const input = document.getElementById("ai-assistant-input");
   const send = document.getElementById("ai-assistant-send");
 
- if (!toggle || !panel || !chat || !input || !send) return;
+  if (!toggle || !panel || !chat || !input || !send) return;
 
   const conversation = [];
   let pending = false;
@@ -31,7 +31,24 @@
     return text.slice(0, 7000);
   }
 
-  async function askLLM(userText) {
+  function getCookie(name) {
+    const cookieParts = document.cookie ? document.cookie.split(";") : [];
+    for (const part of cookieParts) {
+      const item = part.trim();
+      if (item.startsWith(`${name}=`)) {
+        return decodeURIComponent(item.slice(name.length + 1));
+      }
+    }
+    return "";
+  }
+
+  function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    const metaToken = (meta && meta.content || "").trim();
+    return metaToken && metaToken !== "NOTPROVIDED" ? metaToken : getCookie("csrftoken");
+  }
+
+  async function askLLM() {
     pending = true;
     updateSendState();
 
@@ -42,6 +59,7 @@
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
         },
         body: JSON.stringify({
           messages,
@@ -51,7 +69,14 @@
         }),
       });
 
-      const data = await response.json();
+       const isJson = (response.headers.get("content-type") || "").includes("application/json");
+      const data = isJson ? await response.json() : {};
+
+      if (!response.ok) {
+        appendMessage("assistant", data.reply || "AI 服务暂时不可用，请稍后重试。");
+        return;
+      }
+
       const reply = data.reply || "我暂时没有生成有效回复，请稍后再试。";
       appendMessage("assistant", reply);
     } catch (error) {
@@ -68,7 +93,7 @@
 
     appendMessage("user", prompt);
     input.value = "";
-    await askLLM(prompt);
+    await askLLM();
   }
 
   const topicPrompts = {

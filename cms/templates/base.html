@@ -5,6 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>Admin Panel</title>
     <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
 
@@ -36,14 +37,14 @@
         <div id="ai-assistant-panel" hidden>
             <h3>AI 助手</h3>
             <div id="ai-assistant-chat" role="log" aria-live="polite"></div>
-            <div class="ai-assistant-actions">
+            <!-- <div class="ai-assistant-actions">
                 <button type="button" data-topic="courses">课程介绍</button>
                 <button type="button" data-topic="products">产品介绍</button>
                 <button type="button" data-topic="courses">课程</button>
                 <button type="button" data-topic="products">产品</button>
                 <button type="button" data-topic="about">关于我们</button>
                 <button type="button" data-topic="explain">AI解释当前页</button>
-            </div>
+            </div> -->
             <div class="ai-assistant-ask">
                 <label for="ai-assistant-input" class="sr-only">输入你想问的问题</label>
                 <input id="ai-assistant-input" type="text" placeholder="例如：课程时间、怎么报名、产品有哪些" />

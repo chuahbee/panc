@@ -9,16 +9,27 @@
     <div id="card"></div>
 
     <script>
-        axios.get('http://127.0.0.1:8000/api/v2/pages/7/')
+        const params = new URLSearchParams(window.location.search);
+        const pageId = params.get("id") || "7";
+
+        axios.get(`/api/v2/pages/${pageId}/`)
             .then(response => {
                 const data = response.data;
+                const imageUrl = data.main_image?.url || "";
+                const imageWidth = data.main_image?.width || "";
+                const imageHeight = data.main_image?.height || "";
+                const imageAlt = data.main_image?.alt || "";
+
+                const imageBlock = imageUrl
+                    ? `<img src="${imageUrl}" width="${imageWidth}" height="${imageHeight}" alt="${imageAlt}">`
+                    : "";
 
                 const card = `
                     <div style="border: 1px solid #ccc; padding: 10px; max-width: 400px;">
                         <h2>${data.title}</h2>
-                        <img src="http://127.0.0.1:8000${data.main_image.url}" width="${data.main_image.width}" height="${data.main_image.height}" alt="${data.main_image.alt}">
-                        <p><strong>Date:</strong> ${data.date}</p>
-                        <div>${data.body}</div>
+                        ${imageBlock}
+                        <p><strong>Date:</strong> ${data.date || ""}</p>
+                        <div>${data.body || ""}</div>
                     </div>
                 `;
 

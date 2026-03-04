@@ -3,13 +3,23 @@ import os
 from urllib import error, request
 
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 
-@csrf_exempt
 @require_POST
 def ai_assistant_chat(request_):
+    expected_token = os.environ.get("AI_ASSISTANT_API_TOKEN", "").strip()
+    if expected_token:
+        provided_token = request_.headers.get("X-AI-Token", "").strip()
+        if provided_token != expected_token:
+            return JsonResponse(
+                {
+                    "error": "Unauthorized",
+                    "reply": "当前 AI 服务未授权访问。",
+                },
+                status=401,
+            )
+
     try:
         payload = json.loads(request_.body.decode("utf-8") or "{}")
     except json.JSONDecodeError:
