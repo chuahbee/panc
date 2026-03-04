@@ -1,5 +1,6 @@
 import json
 import os
+from io import BytesIO
 from unittest.mock import patch
 
 from django.conf import settings

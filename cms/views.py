@@ -26,8 +26,13 @@ def ai_assistant_chat(request_):
         return JsonResponse({"error": "Invalid JSON payload."}, status=400)
 
     messages = payload.get("messages") or []
-    page_context = (payload.get("page_context") or "").strip()
-
+    raw_page_context = payload.get("page_context")
+    if raw_page_context is None:
+        page_context = ""
+    elif isinstance(raw_page_context, str):
+        page_context = raw_page_context.strip()
+    else:
+        return JsonResponse({"error": "page_context must be a string."}, status=400)
     if not isinstance(messages, list):
         return JsonResponse({"error": "messages must be a list."}, status=400)
 
@@ -63,7 +68,13 @@ def ai_assistant_chat(request_):
         if not isinstance(item, dict):
             continue
         role = item.get("role")
-        content = (item.get("content") or "").strip()
+        raw_content = item.get("content")
+        if raw_content is None:
+            content = ""
+        elif isinstance(raw_content, str):
+            content = raw_content.strip()
+        else:
+            continue
         if role in {"user", "assistant"} and content:
             llm_messages.append({"role": role, "content": content[:2000]})
 
