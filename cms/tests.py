@@ -25,12 +25,13 @@ class AIAssistantEndpointTests(SimpleTestCase):
         csrf_token = _get_new_csrf_string()
         client.cookies["csrftoken"] = csrf_token
 
-        response = client.post(
-            "/api/ai-assistant/",
-            data=json.dumps({"messages": []}),
-            content_type="application/json",
-            HTTP_X_CSRFTOKEN=csrf_token,
-        )
+        with patch("cms.views.os.environ", {"OPENAI_API_KEY": "", "AI_ASSISTANT_API_TOKEN": ""}):
+            response = client.post(
+                "/api/ai-assistant/",
+                data=json.dumps({"messages": []}),
+                content_type="application/json",
+                HTTP_X_CSRFTOKEN=csrf_token,
+            )
 
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.json().get("error"), "OPENAI_API_KEY is not configured.")
@@ -48,14 +49,14 @@ class AIAssistantEndpointTests(SimpleTestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json().get("error"), "Unauthorized")
 
-    @patch.dict(os.environ, {"OPENAI_API_KEY": "", "AI_ASSISTANT_API_TOKEN": ""}, clear=False)
     def test_ai_assistant_returns_503_without_openai_key(self):
         client = Client()
-        response = client.post(
-            "/api/ai-assistant/",
-            data=json.dumps({"messages": [{"role": "user", "content": "你好"}]}),
-            content_type="application/json",
-        )
+        with patch("cms.views.os.environ", {"OPENAI_API_KEY": "", "AI_ASSISTANT_API_TOKEN": ""}):
+            response = client.post(
+                "/api/ai-assistant/",
+                data=json.dumps({"messages": [{"role": "user", "content": "你好"}]}),
+                content_type="application/json",
+            )
 
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.json().get("error"), "OPENAI_API_KEY is not configured.")
@@ -117,7 +118,6 @@ class AIAssistantEndpointTests(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json().get("reply"), "ok")
-
 
 class SettingsContractTests(SimpleTestCase):
     def test_csrf_context_processor_is_enabled(self):
