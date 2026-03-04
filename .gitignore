@@ -25,3 +25,6 @@ media/
 
 # Logs
 *.log
+
+# Local env vars
+.env

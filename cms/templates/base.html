@@ -35,16 +35,25 @@
         <button id="ai-assistant-toggle" type="button" aria-controls="ai-assistant-panel" aria-expanded="false">AI 介绍</button>
         <div id="ai-assistant-panel" hidden>
             <h3>AI 助手</h3>
-            <p id="ai-assistant-message">你好！我是 Pop Art N Craft 的 AI 助手，你想先了解课程、产品，还是关于我们？</p>
+            <div id="ai-assistant-chat" role="log" aria-live="polite"></div>
             <div class="ai-assistant-actions">
                 <button type="button" data-topic="courses">课程介绍</button>
                 <button type="button" data-topic="products">产品介绍</button>
+                <button type="button" data-topic="courses">课程</button>
+                <button type="button" data-topic="products">产品</button>
                 <button type="button" data-topic="about">关于我们</button>
+                <button type="button" data-topic="explain">AI解释当前页</button>
+            </div>
+            <div class="ai-assistant-ask">
+                <label for="ai-assistant-input" class="sr-only">输入你想问的问题</label>
+                <input id="ai-assistant-input" type="text" placeholder="例如：课程时间、怎么报名、产品有哪些" />
+                <button id="ai-assistant-send" type="button">发送</button>
             </div>
         </div>
     </aside>
 
     <script src="{% static 'js/menu.js' %}"></script>
+    <script src="{% static 'js/ai-assistant.js' %}"></script>
     <script src="{% static 'js/break.js' %}"></script>
 
     <!-- THREE.js & loaders -->

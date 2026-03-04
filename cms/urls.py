@@ -10,6 +10,7 @@ from wagtail import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
 from search import views as search_views
+from cms import views as cms_views
 
 # API Router
 api_router = WagtailAPIRouter('wagtailapi')
@@ -22,6 +23,7 @@ urlpatterns = [
     path("search/", search_views.search, name="search"),
     path("api/v2/", api_router.urls),
     path("test/", portfolio_views.test_page, name="test_page"),
+    path("api/ai-assistant/", cms_views.ai_assistant_chat, name="ai_assistant_chat"),
     path("", include(wagtail_urls)),  # 最后
 ]
 

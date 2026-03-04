@@ -32,6 +32,7 @@ const sections = gsap.utils.toArray(".panel");
 const n = sections.length;
 const vw = () => window.innerWidth; // 当前屏宽（实时取）
 
+
 /* 2. 建立唯一的横向滚动 ScrollTrigger */
 const tween = gsap.to(sections, {
   xPercent: -100 * (n - 1),
