@@ -215,6 +215,7 @@ h1 {
   gap: 60px;
 }
 
+
 .next-right {
   display: inline-block;
   width: 1.5em;
@@ -344,6 +345,7 @@ h1 {
   align-items: center;
   line-height: 4rem;
   gap: 50px;
+  font-size: 10rem;
 }
 #mascot-container {
   top: 5%;
@@ -590,6 +592,7 @@ h1 {
     gap: 20px;
     flex-direction: column;
   }
+
 
   .innerBox .centerBox2 {
     display: flex;

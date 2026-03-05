@@ -1,110 +1,37 @@
 {% extends "base.html" %}
 <!-- {% load static wagtailcore_tags %} -->
 {% load static %}
-{% load wagtailimages_tags %}
 
 {% block content %}
 <div id="wrapper" class="flex ">
+  {% for section in page.home_sections %}
+    {% if section.block_type == "intro_section" %}
+        <section class="panel {{ section.value.section_class }}"{% if section.value.background_image_url %} style="background: var(--lightredbg) url('{{ section.value.background_image_url }}') no-repeat center center / cover;"{% endif %}>
+          <h1>
+            <span class="span">{{ section.value.kicker }}</span>
+            {{ section.value.title }}
+          </h1>
 
-  <!-- 0. INTRO -->
-  <section class="panel intro">
-    <h1>
-      <span class="span">Welcome to</span>
-      Pop Art N Craft
-    </h1>
-
-    <div class="centerBox">
-      <div class="innerBox">
-        <a href="{% slugurl 'p2p' %}" class="centerBoxLink">
-          <span class="p2p-line"></span>
-          P2P
-          <span class="next-right"></span>
-        </a>
-
-        <a href="{% slugurl 'credit-cards' %}" class="centerBoxLink">
-          <span class="akar-icons--credit-card"></span>
-          CREDIT CARD
-          <span class="next-right"></span>
-        </a>
-
-        <div class="centerBox2">
-          <div class="centerBoxLink">
-            <span class="mingcute--tether-usdt-line"></span>
-            CRYPTO
+          <div class="centerBox">
+            <div class="innerBox">
+              {% if section.value.main_links %}
+                {% for link in section.value.main_links %}
+                  <a href="{{ link.url|default:'#' }}" class="centerBoxLink">
+                    {% if link.image_url %}
+                      <img src="{{ link.image_url }}" alt="{{ link.image_alt }}">
+                    {% elif link.icon_class %}
+                      <span class="{{ link.icon_class }}"></span>
+                    {% endif %}
+                    {{ link.label }}
+                    <span class="next-right"></span>
+                  </a>
+                {% endfor %}
+              {% endif %}
+            </div>
           </div>
-          <div class="innerBox">
-            <a href="{% slugurl 'bitfinex' %}" class="centerBoxLink">
-              <img src="{% static 'images/bitfinex-logo.webp' %}" alt="Bitfinex">
-              Bitfinex
-              <span class="next-right"></span>
-            </a>
-
-            <a href="{% slugurl 'awesome' %}" class="centerBoxLink">
-              <img src="{% static 'images/awepaylogo_pay_al.png' %}" alt="Awesomepay">
-              Awesomepay
-              <span class="next-right"></span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 1. P2P -->
-  <section class="panel p2p">
-    <h1>
-      <span class="span">Pop Art N Craft</span>
-      Art Class
-    </h1>
-    <div class="centerBox">
-      <div class="innerBox">
-        <a href="{% slugurl 'p2p' %}" class="centerBoxLink">
-          <span class="p2p-line"></span>
-          Let go!
-          <span class="next-right"></span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- 2. CREDIT CARD -->
-  <section class="panel creditcard">
-    <h1>
-      <span class="span">Pop Art N Craft</span>
-      Products
-    </h1>
-    <div class="centerBox">
-      <div class="innerBox">
-        <a href="{% slugurl 'credit-cards' %}" class="centerBoxLink">
-          <span class="akar-icons--credit-card"></span>
-          Let go!
-          <span class="next-right"></span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- 3. CRYPTO -->
-  <section class="panel crypto">
-    <h1>
-      <span class="span">Pop Art N Craft</span>
-      About Us
-    </h1>
-    <div class="centerBox">
-      <div class="innerBox">
-        <a href="{% slugurl 'bitfinex' %}" class="centerBoxLink">
-          <img src="{% static 'images/bitfinex-logo.webp' %}" alt="Bitfinex">
-          Bitfinex
-          <span class="next-right"></span>
-        </a>
-        <a href="{% slugurl 'awesome' %}" class="centerBoxLink">
-          <img src="{% static 'images/awepaylogo_pay_al.png' %}" alt="Awesomepay">
-          Awesomepay
-          <span class="next-right"></span>
-        </a>
-      </div>
-    </div>
-  </section>
+        </section>
+    {% endif %}
+  {% endfor %}
 
 
 </div>

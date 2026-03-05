@@ -1,14 +1,7 @@
 <ul id="timeline">
-  <li data-index="0" class="active">
-    Home
-  </li>
-  <li data-index="1">
-    Art Class
-  </li>
-  <li data-index="2">
-    Products
-  </li>
-  <li data-index="3">
-    About Us
-  </li>
+  {% for section in page.home_sections %}
+    <li data-index="{{ forloop.counter0 }}"{% if forloop.first %} class="active"{% endif %}>
+      {{ section.value.menu_label|default:section.value.title }}
+    </li>
+  {% endfor %}
 </ul>
