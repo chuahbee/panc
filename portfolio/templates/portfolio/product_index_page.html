@@ -1,22 +1,25 @@
-{% extends "base.html" %}
+{% extends "base_info.html" %}
 {% load wagtailimages_tags wagtailcore_tags %}
 
 
 {% block content %}
-<h1>{{ page.title }}</h1>
-<div class="intro">{{ page.intro|richtext }}</div>
+<!-- <h1>{{ page.title }}</h1> -->
+<!-- <div class="intro">{{ page.intro|richtext }}</div> -->
 
 <div class="product-list">
   {% for product in products %}
-    <div class="product">
-      <h3><a href="{{ product.url }}">{{ product.title }}</a></h3>
-       {% if product.image %}
+  <div class="product">
+    <a href="{{ product.url }}">
+      {% if product.image %}
       {% image product.image fill-400x250 class="course-image" %}
-    {% endif %}
-    
-      <p><strong>Price:</strong> ${{ product.price }}</p>
-      <div>{{ product.description|richtext }}</div>
-    </div>
+      {% endif %}
+      <h3>{{ product.title }}</h3>
+      <div class="infotextbox">{{ product.description|richtext }}</div>
+      <h4><span>RM</span> {{ product.price }}</h4>
+    </a>
+  </div>
+  {% empty %}
+    <p>暂时没有产品。</p>
   {% endfor %}
 </div>
 {% endblock %}

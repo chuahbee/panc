@@ -1,4 +1,7 @@
-(function () {
+﻿(function () {
+  const STORAGE_KEY = "ai_assistant_conversation_v1";
+  const MAX_STORED_MESSAGES = 50;
+  const PAGE_CONTEXT_LIMIT = 12000;
   const toggle = document.getElementById("ai-assistant-toggle");
   const panel = document.getElementById("ai-assistant-panel");
   const chat = document.getElementById("ai-assistant-chat");
@@ -10,25 +13,179 @@
   const conversation = [];
   let pending = false;
 
+  function isReloadNavigation() {
+    const navEntries = performance.getEntriesByType && performance.getEntriesByType("navigation");
+    if (navEntries && navEntries.length && navEntries[0].type) {
+      return navEntries[0].type === "reload";
+    }
+    if (performance.navigation && typeof performance.navigation.type === "number") {
+      return performance.navigation.type === 1;
+    }
+    return false;
+  }
+
+  function saveConversation() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(conversation.slice(-MAX_STORED_MESSAGES)));
+    } catch (error) {}
+  }
+
+  function loadConversation() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .filter(
+          (item) =>
+            item &&
+            (item.role === "user" || item.role === "assistant") &&
+            typeof item.content === "string"
+        )
+        .slice(-MAX_STORED_MESSAGES);
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function renderSavedConversation(items) {
+    items.forEach((msg) => {
+      conversation.push(msg);
+      const item = document.createElement("div");
+      item.className = `ai-msg ai-msg-${msg.role}`;
+      item.textContent = msg.role === "assistant" ? normalizeAssistantText(msg.content) : msg.content;
+      chat.appendChild(item);
+    });
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function normalizeAssistantText(text) {
+    return (text || "")
+      .replace(/\*\*/g, "")
+      .replace(/`/g, "")
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
   function appendMessage(role, text) {
-    conversation.push({ role, content: text });
+    const normalizedText = role === "assistant" ? normalizeAssistantText(text) : text;
+    conversation.push({ role, content: normalizedText });
 
     const item = document.createElement("div");
     item.className = `ai-msg ai-msg-${role}`;
-    item.textContent = text;
+    item.textContent = normalizedText;
     chat.appendChild(item);
     chat.scrollTop = chat.scrollHeight;
+    saveConversation();
   }
 
   function updateSendState() {
     send.disabled = pending;
-    send.textContent = pending ? "思考中..." : "发送";
+    if (pending) {
+      send.innerHTML = '<span class="iconify ai-send-icon ai-send-icon-spin" data-icon="mdi:loading" data-inline="false"></span>';
+      send.title = "Thinking... / 思考中... / Sedang berfikir...";
+      send.setAttribute("aria-label", "Thinking... / 思考中... / Sedang berfikir...");
+      return;
+    }
+
+    send.innerHTML = '<span class="iconify ai-send-icon" data-icon="mdi:send" data-inline="false"></span>';
+    send.title = "发送 / Send / Hantar";
+    send.setAttribute("aria-label", "发送 / Send / Hantar");
+  }
+
+  function getStructuredCourseContext() {
+    const cards = Array.from(document.querySelectorAll(".course-card, .course-detail"));
+    if (!cards.length) return "";
+
+    const rows = cards
+      .map((card) => {
+        const title = (card.querySelector("h3")?.innerText || "").trim();
+        if (!title) return "";
+        const link = (card.querySelector("a")?.getAttribute("href") || "").trim();
+
+        const fields = {};
+        card.querySelectorAll("p").forEach((p) => {
+          const strong = p.querySelector("strong");
+          const key = (strong?.innerText || "").replace(":", "").trim();
+          const value = (p.innerText || "").replace((strong?.innerText || ""), "").trim();
+          if (key && value) fields[key] = value;
+        });
+
+        const priceRaw = (card.querySelector("h4")?.innerText || "").trim();
+        const parts = [`Course: ${title}`];
+        if (priceRaw) parts.push(`Price: ${priceRaw}`);
+        if (link) {
+          try {
+            parts.push(`URL: ${new URL(link, window.location.href).href}`);
+          } catch (error) {
+            parts.push(`URL: ${link}`);
+          }
+        }
+        [
+          "Teacher",
+          "Location",
+          "Start Date",
+          "Age",
+          "Weekday",
+          "Time",
+          "Type",
+        ].forEach((key) => {
+          if (fields[key]) parts.push(`${key}: ${fields[key]}`);
+        });
+        return parts.join(" | ");
+      })
+      .filter(Boolean);
+
+    if (!rows.length) return "";
+    return `Structured course data:\n${rows.join("\n")}`;
+  }
+
+  function getStructuredProductContext() {
+    const cards = Array.from(document.querySelectorAll(".product"));
+    if (!cards.length) return "";
+
+    const rows = cards
+      .map((card) => {
+        const title = (card.querySelector("h3")?.innerText || "").trim();
+        if (!title) return "";
+        const link = (card.querySelector("a")?.getAttribute("href") || "").trim();
+        const priceRaw = (card.querySelector("h4")?.innerText || "").trim();
+        const parts = [`Product: ${title}`];
+        if (priceRaw) parts.push(`Price: ${priceRaw}`);
+        if (link) {
+          try {
+            parts.push(`URL: ${new URL(link, window.location.href).href}`);
+          } catch (error) {
+            parts.push(`URL: ${link}`);
+          }
+        }
+        return parts.join(" | ");
+      })
+      .filter(Boolean);
+
+    if (!rows.length) return "";
+    return `Structured product data:\n${rows.join("\n")}`;
   }
 
   function getPageContext() {
     const root = document.querySelector("main") || document.body;
-    const text = (root.innerText || "").replace(/\s+/g, " ").trim();
-    return text.slice(0, 7000);
+    const rawText = root.innerText || "";
+    const normalizedText = rawText
+      .replace(/\r/g, "")
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+    const blocks = [getStructuredCourseContext(), getStructuredProductContext()].filter(Boolean);
+    const structuredContext = blocks.join("\n\n");
+    if (!structuredContext) {
+      return normalizedText.slice(0, PAGE_CONTEXT_LIMIT);
+    }
+
+    const prefix = `${structuredContext}\n\nPage text:\n`;
+    const remaining = Math.max(0, PAGE_CONTEXT_LIMIT - prefix.length);
+    return `${prefix}${normalizedText.slice(0, remaining)}`;
   }
 
   function getCookie(name) {
@@ -44,7 +201,7 @@
 
   function getCsrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
-    const metaToken = (meta && meta.content || "").trim();
+    const metaToken = ((meta && meta.content) || "").trim();
     return metaToken && metaToken !== "NOTPROVIDED" ? metaToken : getCookie("csrftoken");
   }
 
@@ -69,18 +226,27 @@
         }),
       });
 
-       const isJson = (response.headers.get("content-type") || "").includes("application/json");
+      const isJson = (response.headers.get("content-type") || "").includes("application/json");
       const data = isJson ? await response.json() : {};
 
       if (!response.ok) {
-        appendMessage("assistant", data.reply || "AI 服务暂时不可用，请稍后重试。");
+        appendMessage(
+          "assistant",
+          data.reply ||
+            "AI service is temporarily unavailable. / AI 服务暂不可用。 / Perkhidmatan AI tidak tersedia buat sementara."
+        );
         return;
       }
 
-      const reply = data.reply || "我暂时没有生成有效回复，请稍后再试。";
+      const reply =
+        data.reply ||
+        "No valid reply generated. Please try again. / 暂未生成有效回复，请重试。 / Tiada jawapan sah dijana. Sila cuba lagi.";
       appendMessage("assistant", reply);
     } catch (error) {
-      appendMessage("assistant", "AI 服务连接失败，请稍后再试。");
+      appendMessage(
+        "assistant",
+        "AI connection failed. Please try again later. / AI 连接失败，请稍后再试。 / Sambungan AI gagal. Sila cuba lagi."
+      );
     } finally {
       pending = false;
       updateSendState();
@@ -96,12 +262,16 @@
     await askLLM();
   }
 
-  const topicPrompts = {
-    courses: "请解释这个页面里和课程相关的重点。",
-    products: "请解释这个页面里和产品相关的重点。",
-    about: "请解释这个页面里关于我们的重点。",
-    explain: "请根据当前页面内容做一个简明解释。",
-  };
+  if (isReloadNavigation()) {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (error) {}
+  }
+
+  const savedConversation = loadConversation();
+  if (savedConversation.length) {
+    renderSavedConversation(savedConversation);
+  }
 
   toggle.addEventListener("click", function () {
     const isOpen = !panel.hasAttribute("hidden");
@@ -112,16 +282,12 @@
       panel.removeAttribute("hidden");
       toggle.setAttribute("aria-expanded", "true");
       if (!conversation.length) {
-        appendMessage("assistant", "你好，我是 AI 助手。你可以直接让我解释当前页面。比如：这页主要讲什么？");
+        appendMessage(
+          "assistant",
+          "你好，我是 AI 助手。Hello, I am your AI assistant. Hai, saya pembantu AI anda. You can ask what this page sells or provides."
+        );
       }
     }
-  });
-
-  panel.querySelectorAll("[data-topic]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      const topic = button.getAttribute("data-topic");
-      ask(topicPrompts[topic] || "请解释当前页面");
-    });
   });
 
   send.addEventListener("click", function () {
@@ -134,4 +300,6 @@
       ask(input.value);
     }
   });
+
+  updateSendState();
 })();

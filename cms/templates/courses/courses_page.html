@@ -1,51 +1,42 @@
-{% extends "base.html" %}
+{% extends "base_info.html" %}
 {% load wagtailcore_tags wagtailimages_tags %}
 
 {% block content %}
-<div class="container">
-  <h1>{{ page.title }}</h1>
+<!-- <div class="container"> -->
+  <!-- <h1>{{ page.title }}</h1> -->
 
-  {% if page.intro %}
+  <!-- {% if page.intro %}
   <div class="intro">
     {{ page.intro|richtext }}
   </div>
-  {% endif %}
+  {% endif %} -->
 
   <div class="course-list">
-
+    
     {% for course in courses %}
-    <div class="course-card" style="border:1px dashed #ccc; padding:1em; margin-bottom:1em;">
-      
-      <h2><a href="{{ course.url }}">{{ course.title }}</a></h2>
-      <p><strong>教师:</strong> {{ course.teacher }}</p>
-      <p><strong>地点:</strong> {{ course.location }}</p>
-      <p><strong>开课日期:</strong> {{ course.date }}</p>
-      <p><strong>时间:</strong> {{ course.start_time }} - {{ course.end_time }}</p>
-      <p><strong>类型:</strong> {{ course.get_course_type_display }}</p>
-      <p>{{ course.description|richtext }}</p>
-
-      {% if course.image %}
+    <div class="course-card">
+      <a href="{{ course.url }}">
+        {% if course.image %}
         {% image course.image fill-400x250 class="course-image" %}
-      {% endif %}
-
-      <a href="{{ course.url }}" style="
-        display:inline-block;
-        background:#28a745;
-        color:#fff;
-        padding:8px 12px;
-        border-radius:4px;
-        text-decoration:none;
-        margin-top:10px;
-      ">
-        我要报名
+        {% endif %}
+        <h3>{{ course.title }}</h3>
+        <div class="infotextbox">{{ course.description|richtext }}</div>
+        <h4><span>RM</span> {{ course.price }}</h4>
+        
+        <p><strong>Teacher:</strong> {{ course.teacher }}</p>
+        <p><strong>Location:</strong> {{ course.location }}</p>
+        <p><strong>Start Date:</strong> {{ course.date }}</p>
+        {% if course.age %}
+        <p><strong>Age:</strong> {{ course.age }}</p>
+        {% endif %}
+        <p><strong>Weekday:</strong> {{ course.get_weekday_display }}</p>
+        <p><strong>Time:</strong> {{ course.start_time|time:"g:i a" }} - {{ course.end_time|time:"g:i a" }}</p>
+        <p><strong>Type:</strong> {{ course.get_course_type_display }}</p>
       </a>
-
     </div>
-
     {% empty %}
-      <p>暂时没有课程。</p>
+    <p>暂时没有课程。</p>
     {% endfor %}
-
   </div>
-</div>
+<!-- </div> -->
 {% endblock %}

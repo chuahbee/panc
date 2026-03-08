@@ -16,7 +16,7 @@
             <div class="innerBox">
               {% if section.value.main_links %}
                 {% for link in section.value.main_links %}
-                  <a href="{{ link.url|default:'#' }}" class="centerBoxLink">
+                  <a href="{% if link.page %}{{ link.page.url }}{% elif link.custom_url %}{{ link.custom_url }}{% else %}#{% endif %}" class="centerBoxLink">
                     {% if link.image_url %}
                       <img src="{{ link.image_url }}" alt="{{ link.image_alt }}">
                     {% elif link.icon_class %}

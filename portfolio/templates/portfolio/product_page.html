@@ -1,12 +1,12 @@
-{% extends "base.html" %}
+{% extends "base_info.html" %}
 {% load wagtailimages_tags wagtailcore_tags %}
 
 
 {% block content %}
-  <h1>{{ page.title }}</h1>
-   {% if product.image %}
-      {% image product.image original %}
-    {% endif %}
-  <p><strong>Price:</strong> ${{ page.price }}</p>
-  <div>{{ page.description|richtext }}</div>
+<h1>{{ page.title }}</h1>
+{% if page.image %}
+{% image page.image original %}
+{% endif %}
+<p><strong>Price:</strong> ${{ page.price }}</p>
+<div>{{ page.description|richtext}}</div>
 {% endblock %}

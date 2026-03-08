@@ -19,3 +19,11 @@ class TaskSummaryPanel:
 @hooks.register('construct_homepage_panels')
 def add_task_panel(request, panels):
     panels.append(TaskSummaryPanel())
+
+
+@hooks.register("construct_main_menu")
+def rename_snippets_menu_item(request, menu_items):
+    for item in menu_items:
+        if getattr(item, "name", "") == "snippets":
+            item.label = "Site menu"
+            break

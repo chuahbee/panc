@@ -1,0 +1,18 @@
+:root {
+  --coral: #d6d6d6;
+  --mint: #b4eded;
+  --cream: #ffe1aa;
+  --lightorange: #c8edd4;
+  --brown: #1b2315;
+  --white: #f2f2f2;
+  --spacebg: url("../images/space.jpg");
+  --font500: 500;
+  --mainfontweight: 300;
+  --fontfamily: "Poppins", sans-serif;
+  --mainfontstyle: normal;
+  --fontlarge: 2rem;
+  --fontsubtitle: 1.2rem;
+  --bodybg: #efefef;
+  --greycls: #dadada;
+  --lightredbg: #ff7a61;
+}
