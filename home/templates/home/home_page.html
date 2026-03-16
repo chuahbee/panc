@@ -6,7 +6,7 @@
 <div id="wrapper" class="flex ">
   {% for section in page.home_sections %}
     {% if section.block_type == "intro_section" %}
-        <section class="panel {{ section.value.section_class }}"{% if section.value.background_image_url %} style="background: var(--lightredbg) url('{{ section.value.background_image_url }}') no-repeat center center / cover;"{% endif %}>
+        <section class="panel {{ section.value.section_class }}"{% if section.value.background_image %} style="background: var(--lightredbg) url('{{ section.value.background_image.file.url }}') no-repeat center center / cover;"{% endif %}>
           <h1>
             <span class="span">{{ section.value.kicker }}</span>
             {{ section.value.title }}
@@ -17,8 +17,8 @@
               {% if section.value.main_links %}
                 {% for link in section.value.main_links %}
                   <a href="{% if link.page %}{{ link.page.url }}{% elif link.custom_url %}{{ link.custom_url }}{% else %}#{% endif %}" class="centerBoxLink">
-                    {% if link.image_url %}
-                      <img src="{{ link.image_url }}" alt="{{ link.image_alt }}">
+                    {% if link.image %}
+                      <img src="{{ link.image.file.url }}" alt="{{ link.image_alt }}">
                     {% elif link.icon_class %}
                       <span class="{{ link.icon_class }}"></span>
                     {% endif %}

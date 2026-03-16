@@ -51,6 +51,26 @@ class AboutPage(Page):
     parent_page_types = ["home.HomePage"]
 
 
+class ContactPage(Page):
+    intro = models.TextField(blank=True)
+    email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=64, blank=True)
+    address = models.CharField(max_length=255, blank=True)
+    business_hours = models.CharField(max_length=255, blank=True)
+    body = RichTextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+        FieldPanel("email"),
+        FieldPanel("phone"),
+        FieldPanel("address"),
+        FieldPanel("business_hours"),
+        FieldPanel("body"),
+    ]
+
+    parent_page_types = ["home.HomePage"]
+
+
 class WorkPage(Page):
     date = models.DateField("Published date")
     main_image = models.ForeignKey(

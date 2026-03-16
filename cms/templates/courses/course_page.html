@@ -3,27 +3,43 @@
 
 {% block content %}
 <div class="container">
-  <h1>{{ page.title }}</h1>
+  <!-- <h1>{{ page.title }}</h1> -->
 
-  <div class="course-detail" style="border:1px dashed #ccc; padding:1em; margin-bottom:1em;">
-    <p><strong>Teacher:</strong> {{ page.teacher }}</p>
-    <p><strong>Location:</strong> {{ page.location }}</p>
-    <p><strong>Date:</strong> {{ page.date }}</p>
-    {% if page.age %}
-    <p><strong>Age:</strong> {{ page.age }}</p>
-    {% endif %}
-    <p><strong>Weekday:</strong> {{ page.get_weekday_display }}</p>
-    <p><strong>Time:</strong> {{ page.start_time|time:"g:i a" }} - {{ page.end_time|time:"g:i a" }}</p>
-    <p><strong>Type:</strong> {{ page.get_course_type_display }}</p>
-    <p><strong>Price:</strong> RM {{ page.price }}</p>
-
+  <div class="course-detail">
     {% if page.image %}
-      {% image page.image fill-700x400 class="course-image" %}
+    {% image page.image fill-700x400 class="course-image" %}
     {% endif %}
-
-    <div class="mt-3">
-      {{ page.description|richtext }}
-    </div>
+    <ul>
+      <li>
+        <p><strong>Teacher:</strong> {{ page.teacher }}</p>
+      </li>
+      <li>
+        <p><strong>Location:</strong> {{ page.location }}</p>
+      </li>
+      <li>
+        <p><strong>Date:</strong> {{ page.date }}</p>
+      </li>
+      {% if page.age %}
+      <li>
+        <p><strong>Age:</strong> {{ page.age }}</p>
+      </li>
+      {% endif %}
+      <li>
+        <p><strong>Weekday:</strong> {{ page.get_weekday_display }}</p>
+      </li>
+      <li>
+        <p><strong>Time:</strong> {{ page.start_time|time:"g:i a" }} - {{ page.end_time|time:"g:i a" }}</p>
+      </li>
+      <li>
+        <p><strong>Type:</strong> {{ page.get_course_type_display }}</p>
+      </li>
+      <li>
+        <p><strong>Price:</strong> RM {{ page.price }}</p>
+      </li>
+      <li>
+        {{ page.description|richtext }}
+      </li>
+    </ul>
   </div>
 
   <a href="{{ page.get_parent.url }}">Back to courses</a>

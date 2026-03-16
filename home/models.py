@@ -5,6 +5,7 @@ from wagtail.models import Page
 from wagtail.admin.panels import FieldPanel, InlinePanel
 from wagtail.fields import StreamField
 from wagtail.models import Orderable
+from wagtail.images.blocks import ImageChooserBlock
 from wagtail.snippets.models import register_snippet
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
@@ -22,8 +23,11 @@ class HomeLinkBlock(blocks.StructBlock):
         max_length=255,
         help_text="Custom URL, e.g. /our-product/ or https://example.com",
     )
-    icon_class = blocks.CharBlock(required=False, max_length=120, help_text="例如: p2p-line")
-    image_url = blocks.CharBlock(required=False, max_length=255, help_text="例如: /static/images/bitfinex-logo.webp")
+    icon_class = blocks.CharBlock(required=False, max_length=120, help_text="Example: p2p-line")
+    image = ImageChooserBlock(
+        required=False,
+        help_text="Upload link image.",
+    )
     image_alt = blocks.CharBlock(required=False, max_length=120)
 
     def clean(self, value):
@@ -43,20 +47,18 @@ class IntroSectionBlock(blocks.StructBlock):
         required=False,
         max_length=80,
         default="Home",
-        help_text="底部导航显示文字（timeline）。",
+        help_text="Text shown in bottom timeline navigation.",
     )
-    background_image_url = blocks.CharBlock(
+    background_image = ImageChooserBlock(
         required=False,
-        max_length=255,
-        default="/static/images/333.jpg",
-        help_text="背景图 URL。建议尺寸: 2163x1080px。",
+        help_text="Upload a background image (recommended size: 2163x1080).",
     )
     kicker = blocks.CharBlock(required=True, max_length=100, default="Welcome to")
     title = blocks.CharBlock(required=True, max_length=200, default="Pop Art N Craft")
     main_links = blocks.ListBlock(
         HomeLinkBlock(),
         required=False,
-        help_text="顶部主链接，可增删和排序。",
+        help_text="Top main links; you can add, remove, and reorder.",
     )
 
 
@@ -125,3 +127,4 @@ class SiteMenuItem(Orderable):
         if self.page:
             return self.page.url
         return self.custom_url
+

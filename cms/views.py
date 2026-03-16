@@ -2,7 +2,7 @@
 import os
 import re
 from urllib import error, request
-from urllib.parse import urlsplit
+from urllib.parse import quote_plus, urlsplit
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -497,7 +497,20 @@ def _build_age_template_reply(messages, page_context, language_name):
 
     courses = _get_available_courses(page_context)
     if not courses:
-        return ""
+        if language_name == "English":
+            return (
+                "I can't find course data on this page right now.\n"
+                f"{_build_contact_cta(language_name, query)}"
+            )
+        if language_name == "Bahasa Melayu":
+            return (
+                "Saya belum jumpa data kursus pada halaman ini.\n"
+                f"{_build_contact_cta(language_name, query)}"
+            )
+        return (
+            "我这边暂时没有在本页找到课程数据。\n"
+            f"{_build_contact_cta(language_name, query)}"
+        )
 
     if not requested_ages:
         age_ranges = []
@@ -540,8 +553,9 @@ def _build_age_template_reply(messages, page_context, language_name):
                     )
                     lines.append(f"- Age {age}: {names}")
                 else:
-                    lines.append(f"- Age {age}: no matching course on this page")
-            return "\n".join(lines[:4])
+                    lines.append(f"- Age {age}: no direct match on this page")
+            lines.append(_build_contact_cta(language_name, query))
+            return "\n".join(lines[:5])
         if language_name == "Bahasa Melayu":
             lines = ["Keputusan padanan umur:"]
             for age in requested_ages[:3]:
@@ -558,8 +572,9 @@ def _build_age_template_reply(messages, page_context, language_name):
                     )
                     lines.append(f"- Umur {age}: {names}")
                 else:
-                    lines.append(f"- Umur {age}: tiada kursus padanan pada halaman ini")
-            return "\n".join(lines[:4])
+                    lines.append(f"- Umur {age}: tiada padanan terus pada halaman ini")
+            lines.append(_build_contact_cta(language_name, query))
+            return "\n".join(lines[:5])
 
         lines = ["按年龄匹配结果："]
         for age in requested_ages[:3]:
@@ -576,8 +591,9 @@ def _build_age_template_reply(messages, page_context, language_name):
                 )
                 lines.append(f"- {age}岁：{names}")
             else:
-                lines.append(f"- {age}岁：本页暂时没有匹配课程")
-        return "\n".join(lines[:4])
+                lines.append(f"- {age}岁：本页暂时没有直接匹配课程")
+        lines.append(_build_contact_cta(language_name, query))
+        return "\n".join(lines[:5])
 
     requested_age = requested_ages[0]
     matched = [course for course in courses if _age_matches_rule(requested_age, course.get("Age", ""))]
@@ -589,17 +605,20 @@ def _build_age_template_reply(messages, page_context, language_name):
                 age_ranges.append(age_rule)
         if language_name == "English":
             return (
-                f"Age {requested_age}: no matching course on this page.\n"
-                f"Available age ranges: {', '.join(age_ranges) if age_ranges else 'See course list'}"
+                f"For age {requested_age}, there is no direct match on this page right now.\n"
+                f"Available age ranges: {', '.join(age_ranges) if age_ranges else 'See course list'}\n"
+                f"{_build_contact_cta(language_name, query)}"
             )
         if language_name == "Bahasa Melayu":
             return (
-                f"Umur {requested_age}: tiada kursus padanan pada halaman ini.\n"
-                f"Julat umur tersedia: {', '.join(age_ranges) if age_ranges else 'Rujuk senarai kursus'}"
+                f"Untuk umur {requested_age}, belum ada padanan terus pada halaman ini.\n"
+                f"Julat umur tersedia: {', '.join(age_ranges) if age_ranges else 'Rujuk senarai kursus'}\n"
+                f"{_build_contact_cta(language_name, query)}"
             )
         return (
-            f"{requested_age}岁：本页暂时没有匹配课程。\n"
-            f"本页可报名年龄范围：{'、'.join(age_ranges) if age_ranges else '请查看课程列表'}"
+            f"{requested_age}岁：本页暂时没有直接匹配课程。\n"
+            f"本页可报名年龄范围：{'、'.join(age_ranges) if age_ranges else '请查看课程列表'}\n"
+            f"{_build_contact_cta(language_name, query)}"
         )
 
     lines = []
@@ -642,6 +661,143 @@ def _build_age_template_reply(messages, page_context, language_name):
                 lines.append(f"   页面：{_short_page_label(course.get('URL', ''))}")
 
     return "\n".join(lines[: 1 + max_items * 4])
+
+
+def _normalize_phone_for_whatsapp(raw_phone):
+    if not raw_phone:
+        return ""
+    return re.sub(r"\D", "", str(raw_phone))
+
+
+def _resolve_contact_page_url():
+    try:
+        from portfolio.models import ContactPage
+
+        page = ContactPage.objects.live().public().first()
+        if page:
+            full_url = (getattr(page, "full_url", "") or "").strip()
+            if full_url:
+                lowered = full_url.lower()
+                if "://localhost" not in lowered and "://127.0.0.1" not in lowered:
+                    return full_url
+            relative_url = (getattr(page, "url", "") or "").strip()
+            if relative_url:
+                return relative_url
+    except Exception:
+        pass
+    return "/contact/"
+
+
+def _resolve_whatsapp_link():
+    env_phone = (os.environ.get("AI_ASSISTANT_WHATSAPP_PHONE", "") or "").strip()
+    phone_digits = _normalize_phone_for_whatsapp(env_phone)
+    if phone_digits:
+        return f"https://wa.me/{phone_digits}"
+
+    try:
+        from portfolio.models import ContactPage
+
+        page = ContactPage.objects.live().public().first()
+        phone_digits = _normalize_phone_for_whatsapp(getattr(page, "phone", ""))
+        if phone_digits:
+            return f"https://wa.me/{phone_digits}"
+    except Exception:
+        pass
+
+    return ""
+
+
+def _append_whatsapp_prefill(whatsapp_link, prefill_text):
+    if not whatsapp_link:
+        return ""
+
+    text = (prefill_text or "").strip()
+    if not text:
+        return whatsapp_link
+
+    separator = "&" if "?" in whatsapp_link else "?"
+    return f"{whatsapp_link}{separator}text={quote_plus(text[:240])}"
+
+
+def _build_contact_cta(language_name, user_query=""):
+    whatsapp_link = _append_whatsapp_prefill(_resolve_whatsapp_link(), user_query)
+    contact_url = _resolve_contact_page_url()
+
+    if language_name == "English":
+        if whatsapp_link:
+            return f"If you want, message us on WhatsApp and we can help arrange a suitable plan: {whatsapp_link}"
+        return f"If you want, contact us and we can help arrange a suitable plan: {contact_url}"
+
+    if language_name == "Bahasa Melayu":
+        if whatsapp_link:
+            return f"Jika anda mahu, WhatsApp kami dan kami boleh bantu aturkan pelan yang sesuai: {whatsapp_link}"
+        return f"Jika anda mahu, hubungi kami dan kami boleh bantu aturkan pelan yang sesuai: {contact_url}"
+
+    if whatsapp_link:
+        return f"如果你愿意，可以直接 WhatsApp 我们，我们帮你安排合适方案：{whatsapp_link}"
+    return f"如果你愿意，可以联系我们，我们帮你安排合适方案：{contact_url}"
+
+
+def _is_contact_query(query):
+    text = (query or "").strip().lower()
+    if not text:
+        return False
+
+    markers = (
+        "contact",
+        "contacts",
+        "contact us",
+        "phone",
+        "tel",
+        "whatsapp",
+        "whatapp",
+        "wa",
+        "联系方式",
+        "联络",
+        "联系",
+        "电话",
+        "wechat",
+        "hubungi",
+        "nombor",
+        "nomor",
+        "telefon",
+    )
+    return any(marker in text for marker in markers)
+
+
+def _build_contact_reply(messages, language_name):
+    query = _extract_recent_user_query(messages)
+    if not _is_contact_query(query):
+        return ""
+
+    contact_url = _resolve_contact_page_url()
+    whatsapp_link = _append_whatsapp_prefill(_resolve_whatsapp_link(), query)
+
+    if language_name == "English":
+        if whatsapp_link:
+            return (
+                "You can contact us on WhatsApp:\n"
+                f"{whatsapp_link}\n"
+                f"Contact page: {contact_url}"
+            )
+        return f"Please use our contact page: {contact_url}"
+
+    if language_name == "Bahasa Melayu":
+        if whatsapp_link:
+            return (
+                "Anda boleh hubungi kami melalui WhatsApp:\n"
+                f"{whatsapp_link}\n"
+                f"Halaman contact: {contact_url}"
+            )
+        return f"Sila gunakan halaman contact kami: {contact_url}"
+
+    if whatsapp_link:
+        return (
+            "你可以点击这个 WhatsApp 链接直接联系：\n"
+            f"{whatsapp_link}\n"
+            f"联系页面：{contact_url}"
+        )
+    return f"请使用联系页面：{contact_url}"
 
 
 def _build_local_faq_reply(messages, language_name):
@@ -790,7 +946,20 @@ def _build_art_interest_reply(messages, page_context, language_name):
 
     courses = _get_available_courses(page_context)
     if not courses:
-        return ""
+        if language_name == "English":
+            return (
+                "Great question. We can recommend based on your child's age and location.\n"
+                f"{_build_contact_cta(language_name, query)}"
+            )
+        if language_name == "Bahasa Melayu":
+            return (
+                "Soalan yang baik. Kami boleh cadangkan ikut umur anak dan lokasi anda.\n"
+                f"{_build_contact_cta(language_name, query)}"
+            )
+        return (
+            "这个问题很好。我们可以按孩子年龄和地点帮你推荐。\n"
+            f"{_build_contact_cta(language_name, query)}"
+        )
 
     top_courses = courses[:3]
     if language_name == "English":
@@ -882,7 +1051,20 @@ def _build_product_list_reply(messages, page_context, language_name):
 
     products = _get_available_products(page_context)
     if not products:
-        return ""
+        if language_name == "English":
+            return (
+                "I can't find a product list on this page right now.\n"
+                f"{_build_contact_cta(language_name, query)}"
+            )
+        if language_name == "Bahasa Melayu":
+            return (
+                "Saya belum jumpa senarai produk pada halaman ini.\n"
+                f"{_build_contact_cta(language_name, query)}"
+            )
+        return (
+            "我这边暂时没有在本页找到产品列表。\n"
+            f"{_build_contact_cta(language_name, query)}"
+        )
 
     top_products = products[:5]
     if language_name == "English":
@@ -940,7 +1122,20 @@ def _build_course_page_reply(messages, page_context, language_name):
 
     courses = _get_available_courses(page_context)
     if not courses:
-        return ""
+        if language_name == "English":
+            return (
+                "I can't find course page links on this page yet.\n"
+                f"{_build_contact_cta(language_name, query)}"
+            )
+        if language_name == "Bahasa Melayu":
+            return (
+                "Saya belum jumpa pautan halaman kursus pada halaman ini.\n"
+                f"{_build_contact_cta(language_name, query)}"
+            )
+        return (
+            "我这边暂时没有在本页找到课程页面链接。\n"
+            f"{_build_contact_cta(language_name, query)}"
+        )
 
     top_courses = courses[:6]
     if language_name == "English":
@@ -1000,6 +1195,8 @@ def _build_registration_reply(messages, page_context, language_name):
             lines.append("Suggested pages:")
             for course in top_courses:
                 lines.append(f"- {course.get('Course', '')}: {_short_page_label(course.get('URL', ''))}")
+        else:
+            lines.append(_build_contact_cta(language_name, query))
         return "\n".join(lines)
 
     if language_name == "Bahasa Melayu":
@@ -1011,6 +1208,8 @@ def _build_registration_reply(messages, page_context, language_name):
             lines.append("Halaman dicadangkan:")
             for course in top_courses:
                 lines.append(f"- {course.get('Course', '')}: {_short_page_label(course.get('URL', ''))}")
+        else:
+            lines.append(_build_contact_cta(language_name, query))
         return "\n".join(lines)
 
     lines = ["可以按这 3 步报名："]
@@ -1021,6 +1220,8 @@ def _build_registration_reply(messages, page_context, language_name):
         lines.append("你可以先看这些页面：")
         for course in top_courses:
             lines.append(f"- {course.get('Course', '')}：{_short_page_label(course.get('URL', ''))}")
+    else:
+        lines.append(_build_contact_cta(language_name, query))
     return "\n".join(lines)
 
 
@@ -1031,7 +1232,20 @@ def _build_course_list_reply(messages, page_context, language_name):
 
     courses = _get_available_courses(page_context)
     if not courses:
-        return ""
+        if language_name == "English":
+            return (
+                "I can't find course details on this page right now.\n"
+                f"{_build_contact_cta(language_name, query)}"
+            )
+        if language_name == "Bahasa Melayu":
+            return (
+                "Saya belum jumpa butiran kursus pada halaman ini.\n"
+                f"{_build_contact_cta(language_name, query)}"
+            )
+        return (
+            "我这边暂时没有在本页找到课程详情。\n"
+            f"{_build_contact_cta(language_name, query)}"
+        )
 
     top_courses = courses[:3]
     if language_name == "English":
@@ -1104,6 +1318,10 @@ def ai_assistant_chat(request_):
     page_title = raw_page_title.strip() if isinstance(raw_page_title, str) else ""
     page_url = raw_page_url.strip() if isinstance(raw_page_url, str) else ""
     language_name, language_rule = _detect_response_language(messages)
+
+    contact_reply = _build_contact_reply(messages, language_name)
+    if contact_reply:
+        return JsonResponse({"reply": contact_reply})
 
     local_faq_reply = _build_local_faq_reply(messages, language_name)
     if local_faq_reply:

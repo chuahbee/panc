@@ -13,26 +13,27 @@
   const conversation = [];
   let pending = false;
 
-  function isReloadNavigation() {
-    const navEntries = performance.getEntriesByType && performance.getEntriesByType("navigation");
-    if (navEntries && navEntries.length && navEntries[0].type) {
-      return navEntries[0].type === "reload";
+  function getConversationStore() {
+    try {
+      return window.sessionStorage;
+    } catch (error) {
+      return null;
     }
-    if (performance.navigation && typeof performance.navigation.type === "number") {
-      return performance.navigation.type === 1;
-    }
-    return false;
   }
 
   function saveConversation() {
+    const store = getConversationStore();
+    if (!store) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(conversation.slice(-MAX_STORED_MESSAGES)));
+      store.setItem(STORAGE_KEY, JSON.stringify(conversation.slice(-MAX_STORED_MESSAGES)));
     } catch (error) {}
   }
 
   function loadConversation() {
+    const store = getConversationStore();
+    if (!store) return [];
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = store.getItem(STORAGE_KEY);
       if (!raw) return [];
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) return [];
@@ -54,7 +55,11 @@
       conversation.push(msg);
       const item = document.createElement("div");
       item.className = `ai-msg ai-msg-${msg.role}`;
-      item.textContent = msg.role === "assistant" ? normalizeAssistantText(msg.content) : msg.content;
+      if (msg.role === "assistant") {
+        renderAssistantContent(item, msg.content);
+      } else {
+        item.textContent = msg.content;
+      }
       chat.appendChild(item);
     });
     chat.scrollTop = chat.scrollHeight;
@@ -69,13 +74,43 @@
       .trim();
   }
 
+  function renderAssistantContent(container, text) {
+    const safeText = normalizeAssistantText(text);
+    const lines = safeText.split("\n");
+    const urlRegex = /(https?:\/\/[^\s]+|\/[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=%-]*)/g;
+
+    lines.forEach((line, lineIndex) => {
+      const parts = line.split(urlRegex);
+      parts.forEach((part) => {
+        if (!part) return;
+        if (/^https?:\/\/[^\s]+$/.test(part) || /^\/[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=%-]*$/.test(part)) {
+          const link = document.createElement("a");
+          link.href = part;
+          // link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = part;
+          container.appendChild(link);
+        } else {
+          container.appendChild(document.createTextNode(part));
+        }
+      });
+      if (lineIndex < lines.length - 1) {
+        container.appendChild(document.createElement("br"));
+      }
+    });
+  }
+
   function appendMessage(role, text) {
     const normalizedText = role === "assistant" ? normalizeAssistantText(text) : text;
     conversation.push({ role, content: normalizedText });
 
     const item = document.createElement("div");
     item.className = `ai-msg ai-msg-${role}`;
-    item.textContent = normalizedText;
+    if (role === "assistant") {
+      renderAssistantContent(item, normalizedText);
+    } else {
+      item.textContent = normalizedText;
+    }
     chat.appendChild(item);
     chat.scrollTop = chat.scrollHeight;
     saveConversation();
@@ -262,12 +297,6 @@
     await askLLM();
   }
 
-  if (isReloadNavigation()) {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (error) {}
-  }
-
   const savedConversation = loadConversation();
   if (savedConversation.length) {
     renderSavedConversation(savedConversation);
@@ -284,7 +313,7 @@
       if (!conversation.length) {
         appendMessage(
           "assistant",
-          "你好，我是 AI 助手。Hello, I am your AI assistant. Hai, saya pembantu AI anda. You can ask what this page sells or provides."
+          "支持语言: 中文, English, Malay"
         );
       }
     }
