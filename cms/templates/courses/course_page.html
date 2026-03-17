@@ -37,9 +37,12 @@
         <p><strong>Price:</strong> RM {{ page.price }}</p>
       </li>
       <li>
-        {{ page.description|richtext }}
+        
       </li>
     </ul>
+    <div class="info-box">
+      {{ page.description|richtext }}
+    </div>
   </div>
 
   <a href="{{ page.get_parent.url }}">Back to courses</a>
