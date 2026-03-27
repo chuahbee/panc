@@ -3,17 +3,29 @@
 
 {% block content %}
 <div class="prose mx-auto max-w-2xl p-6">
-  <h1 class="text-4xl font-bold mb-2">{{ page.title }}</h1>
+  <!-- <h1 class="text-4xl font-bold mb-2">{{ page.title }}</h1> -->
 
-  {% if page.main_image %}
-    <figure class="mb-4">
-        {% image page.main_image fill-800x400 alt=page.title %}
+
+
+  <div class="about-box">
+
+    {% if page.main_image %}
+    <figure class="about-img">
+      {% image page.main_image fill-800x400 alt=page.title %}
     </figure>
-  {% endif %}
+    {% endif %}
+
+    We are an art studio based in Cheras, Kuala Lumpur, with over 20 years of teaching experience in art education.
+    <br><br>
+    Our mission is to nurture creativity and help students develop strong artistic foundations through structured and
+    enjoyable learning.
+    <br><br>
+    We believe that every student has unique creative potential. Through drawing, painting, and creative projects, our
+    classes help students explore their imagination while building confidence in their artistic abilities.
+  </div>
 
   <div class="body-text">
     {{ page.body|richtext }}
   </div>
 </div>
 {% endblock %}
-

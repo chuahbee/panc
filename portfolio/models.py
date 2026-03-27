@@ -52,6 +52,7 @@ class AboutPage(Page):
 
 
 class ContactPage(Page):
+    working_days = models.CharField(max_length=255, blank=True)
     intro = models.TextField(blank=True)
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=64, blank=True)
@@ -60,6 +61,7 @@ class ContactPage(Page):
     body = RichTextField(blank=True)
 
     content_panels = Page.content_panels + [
+        FieldPanel("working_days"),
         FieldPanel("intro"),
         FieldPanel("email"),
         FieldPanel("phone"),

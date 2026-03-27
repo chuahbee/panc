@@ -14,6 +14,34 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 import importlib.util
 
+def _is_placeholder_openai_api_key(value: str | None) -> bool:
+    normalized = (value or "").strip().lower()
+    if not normalized:
+        return True
+
+    placeholder_values = {
+        "your-key",
+        "your_openai_api_key",
+        "openai_api_key",
+        "changeme",
+        "replace-me",
+        "replace_with_real_key",
+        "sk-your-key",
+        "sk-test",
+    }
+    return normalized in placeholder_values or "your-key" in normalized
+
+
+def _should_set_env_value(key: str, current_value: str | None, incoming_value: str) -> bool:
+    if not current_value:
+        return True
+
+    if key == "OPENAI_API_KEY" and _is_placeholder_openai_api_key(current_value):
+        return not _is_placeholder_openai_api_key(incoming_value)
+
+    return False
+
+
 def _load_dotenv(dotenv_path: str) -> None:
     if not os.path.exists(dotenv_path):
         return
@@ -28,7 +56,9 @@ def _load_dotenv(dotenv_path: str) -> None:
             key = key.strip()
             value = value.strip().strip('"').strip("'")
             if key:
-                os.environ.setdefault(key, value)
+                current_value = os.environ.get(key)
+                if _should_set_env_value(key, current_value, value):
+                    os.environ[key] = value
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.dirname(PROJECT_DIR)

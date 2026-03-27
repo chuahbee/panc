@@ -78,6 +78,7 @@
     const safeText = normalizeAssistantText(text);
     const lines = safeText.split("\n");
     const urlRegex = /(https?:\/\/[^\s]+|\/[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=%-]*)/g;
+    const opensInNewTabRegex = /^https?:\/\/(?:wa\.me|api\.whatsapp\.com)\//i;
 
     lines.forEach((line, lineIndex) => {
       const parts = line.split(urlRegex);
@@ -86,7 +87,9 @@
         if (/^https?:\/\/[^\s]+$/.test(part) || /^\/[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=%-]*$/.test(part)) {
           const link = document.createElement("a");
           link.href = part;
-          // link.target = "_blank";
+          if (opensInNewTabRegex.test(part)) {
+            link.target = "_blank";
+          }
           link.rel = "noopener noreferrer";
           link.textContent = part;
           container.appendChild(link);

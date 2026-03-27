@@ -1,5 +1,6 @@
 import json
 import os
+import tempfile
 from io import BytesIO
 from unittest.mock import patch
 
@@ -15,6 +16,7 @@ from cms.views import (
     _extract_requested_ages,
     _extract_structured_courses,
 )
+from cms.settings.base import _load_dotenv
 
 
 @override_settings(ROOT_URLCONF="cms.urls")
@@ -43,7 +45,7 @@ class AIAssistantEndpointTests(SimpleTestCase):
             )
 
         self.assertEqual(response.status_code, 503)
-        self.assertEqual(response.json().get("error"), "OPENAI_API_KEY is not configured.")
+        self.assertEqual(response.json().get("error"), "OPENAI_API_KEY is not configured correctly.")
 
     @patch.dict(os.environ, {"OPENAI_API_KEY": "", "AI_ASSISTANT_API_TOKEN": ""}, clear=False)
     def test_ai_assistant_requires_token_when_configured(self):
@@ -68,7 +70,20 @@ class AIAssistantEndpointTests(SimpleTestCase):
             )
 
         self.assertEqual(response.status_code, 503)
-        self.assertEqual(response.json().get("error"), "OPENAI_API_KEY is not configured.")
+        self.assertEqual(response.json().get("error"), "OPENAI_API_KEY is not configured correctly.")
+
+    def test_ai_assistant_returns_503_for_placeholder_openai_key(self):
+        client = Client()
+        with patch("cms.views.os.environ", {"OPENAI_API_KEY": "your-key", "AI_ASSISTANT_API_TOKEN": ""}):
+            response = client.post(
+                "/api/ai-assistant/",
+                data=json.dumps({"messages": [{"role": "user", "content": "hello"}]}),
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json().get("error"), "OPENAI_API_KEY is not configured correctly.")
+        self.assertIn("your-key", response.json().get("reply", ""))
 
     def test_ai_assistant_returns_age_template_without_openai_key(self):
         client = Client()
@@ -292,7 +307,7 @@ class AIAssistantEndpointTests(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
         reply = response.json().get("reply", "")
-        self.assertIn("Age 5: no matching course", reply)
+        self.assertIn("Age 5: no direct match on this page", reply)
         self.assertIn("Age 6: Digital Art (6-12)", reply)
 
     def test_ai_assistant_returns_local_art_benefits_without_openai_key(self):
@@ -422,6 +437,30 @@ class SettingsContractTests(SimpleTestCase):
     def test_csrf_context_processor_is_enabled(self):
         context_processors = settings.TEMPLATES[0]["OPTIONS"]["context_processors"]
         self.assertIn("django.template.context_processors.csrf", context_processors)
+
+    def test_load_dotenv_overrides_placeholder_openai_api_key(self):
+        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as dotenv_file:
+            dotenv_file.write("OPENAI_API_KEY=sk-real-key\n")
+            dotenv_path = dotenv_file.name
+
+        try:
+            with patch.dict(os.environ, {"OPENAI_API_KEY": "your-key"}, clear=False):
+                _load_dotenv(dotenv_path)
+                self.assertEqual(os.environ.get("OPENAI_API_KEY"), "sk-real-key")
+        finally:
+            os.unlink(dotenv_path)
+
+    def test_load_dotenv_does_not_override_real_openai_api_key(self):
+        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as dotenv_file:
+            dotenv_file.write("OPENAI_API_KEY=sk-dotenv-key\n")
+            dotenv_path = dotenv_file.name
+
+        try:
+            with patch.dict(os.environ, {"OPENAI_API_KEY": "sk-env-key"}, clear=False):
+                _load_dotenv(dotenv_path)
+                self.assertEqual(os.environ.get("OPENAI_API_KEY"), "sk-env-key")
+        finally:
+            os.unlink(dotenv_path)
 
 
 class AIAssistantAgeRuleTests(SimpleTestCase):

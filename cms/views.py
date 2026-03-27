@@ -26,6 +26,25 @@ def _extract_recent_user_query(messages):
     return ""
 
 
+def _is_placeholder_openai_key(api_key):
+    normalized = (api_key or "").strip()
+    if not normalized:
+        return True
+
+    placeholder_values = {
+        "your-key",
+        "your_openai_api_key",
+        "openai_api_key",
+        "changeme",
+        "replace-me",
+        "replace_with_real_key",
+        "sk-your-key",
+        "sk-test",
+    }
+    lowered = normalized.lower()
+    return lowered in placeholder_values or "your-key" in lowered
+
+
 def _build_site_context(query):
     if not query:
         return ""
@@ -1351,12 +1370,12 @@ def ai_assistant_chat(request_):
     if course_list_reply:
         return JsonResponse({"reply": course_list_reply})
 
-    api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
+    api_key = (os.environ.get("OPENAI_API_KEY") or "").strip()
+    if _is_placeholder_openai_key(api_key):
         return JsonResponse(
             {
-                "error": "OPENAI_API_KEY is not configured.",
-                "reply": "当前未配置 AI 服务密钥（OPENAI_API_KEY），请先在服务器环境变量中配置后再使用 AI 解释。",
+                "error": "OPENAI_API_KEY is not configured correctly.",
+                "reply": "当前 AI 服务密钥未正确配置，请检查服务器环境变量中的 OPENAI_API_KEY，避免使用 your-key 这类占位值。",
             },
             status=503,
         )

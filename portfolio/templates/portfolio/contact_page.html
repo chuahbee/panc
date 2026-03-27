@@ -49,6 +49,12 @@
         <strong>Business hours:</strong> {{ page.business_hours }}
       </li>
     {% endif %}
+    {% if page.working_days %}
+      <li>
+        <span class="iconify" data-icon="mdi:calendar-week-outline" aria-hidden="true"></span>
+        <strong>Working days:</strong> {{ page.working_days }}
+      </li>
+    {% endif %}
   </ul>
 
   {% if page.body %}
